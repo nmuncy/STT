@@ -26,6 +26,7 @@ parDir=~/compute/STT_reml
 workDir=${parDir}/derivatives
 roiDir=${parDir}/Analyses/roiAnalysis
 betaDir=${roiDir}/ns_betas
+statDir=${roiDir}/ns_stats
 grpDir=${parDir}/Analyses/grpAnalysis
 refDir=${workDir}/sub-1295
 
@@ -44,8 +45,8 @@ blurX=2													# blur multiplier
 # neuroSyn masks
 arrSyn=(Enc Ret)										# desired prefix of neurosyn mask
 arrThr=(80 100)											# desired thresholding for NS mask
-arrEnc=(LHC RCS LITG RAMG)								# names of NS mask, array name corresponds to $arrSyn
-arrRet=(LRS LAG LHC LMFG LMPFC LTPJ LDMPFC RHC RPOS RpHC)
+arrEnc=(LMTL RCS LITS RAMG)								# names of NS mask, array name corresponds to $arrSyn
+arrRet=(LPCU LAG LMTL LMFG LVMPFC LTPJ LDMPFC RHCB RPOS RHCT)
 
 
 
@@ -62,7 +63,7 @@ MatchString (){
 
 
 ### work
-mkdir $betaDir
+mkdir $betaDir $statDir
 
 
 # determine blur

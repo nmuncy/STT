@@ -16,7 +16,7 @@ library(ez)
 
 parDir <- "/Volumes/Yorick/STT_reml/Analyses/"
 
-doWrite <- 1
+doWrite <- 0
 doGraphs <- 1
 
 
@@ -499,6 +499,8 @@ if(doWrite == 1){
 
 ### Post-hoc analyses
 for(j in t(NSmaster_list)){
+  
+  df.pall <- read.table(paste0(ns_outDir,"Stats_AN_all_adj-p.txt"))
   count<-0; if(df.pall[j,2] < 0.05){
 
     ## get info
