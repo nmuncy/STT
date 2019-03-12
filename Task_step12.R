@@ -16,8 +16,8 @@ library(ez)
 
 parDir <- "/Volumes/Yorick/STT_reml/Analyses/"
 
-doWrite <- 0
-doGraphs <- 1
+doWrite <- 1
+doGraphs <- 0
 
 
 ### ROI variables
@@ -121,10 +121,10 @@ EtacNames.Function <- function(x,y){
 }
 
 NsNames.Function <- function(x){
-  if(x=="LHC"){
-    return("L. Hippocampus")
-  }else if(x=="LITG"){
-    return("L. Inferotemporal Gyrus")
+  if(x=="LMTL"){
+    return("L. Medial Temporal Lobe")
+  }else if(x=="LITS"){
+    return("L. Inferotemporal Sulcus")
   }else if(x=="RAMG"){
     return("R. Amygdala")
   }else if(x=="RCS"){
@@ -135,18 +135,18 @@ NsNames.Function <- function(x){
     return("L. Dorsal Medial PFC")
   }else if(x=="LMFG"){
     return("L. Middle Frontal Gyrus")
-  }else if(x=="LMPFC"){
-    return("L. Medial PFC")
-  }else if(x=="LRS"){
-    return("L. Retrosplenial Cortex")
+  }else if(x=="LVMPFC"){
+    return("L. Ventral Medial PFC")
+  }else if(x=="LPCU"){
+    return("L. Precuneus")
   }else if(x=="LTPJ"){
     return("L. Temporo-parietal Junction")
-  }else if(x=="RHC"){
-    return("R. Hippocampus")
+  }else if(x=="RHCB"){
+    return("R. Hippocampal Body")
   }else if(x=="RPOS"){
     return("R. Parieto-occipital sulcus")
-  }else if(x=="RpHC"){
-    return("R. Posterior Hippocampus")
+  }else if(x=="RHCT"){
+    return("R. Hippocampal Tail")
   }
 }
 
@@ -518,6 +518,9 @@ for(j in t(NSmaster_list)){
     df.post <- matrix(NA,nrow = num.mask,ncol = 1+(num.comp*6))
     colnames(df.post) <- c("ROI",rep(c("Comp","T","df","p","LB","RB"),num.comp))
     
+    # set up table
+    df.graph <- matrix(NA,nrow = num.subj,ncol=0)
+
     # reduce two-way to multiple one-ways
     c<-1; while(c <= (dim(Mdata)[2]-(num.betas-1))){
       
@@ -552,6 +555,7 @@ for(j in t(NSmaster_list)){
             
             # post ts, table, graphs
             df.post[count,] <- MkTable.Function(hold.df,perm.set)
+            df.graph <- cbind(df.graph,hold.df)
             if(doGraphs == 1){
               Graph.Function(hold.df,comp,hold.mask,ns_outDir)
             }
@@ -578,6 +582,7 @@ for(j in t(NSmaster_list)){
     df.output <- na.omit(df.post)
     if(doWrite==1){
       write.table(df.output,paste0(ns_outDir,"Stats_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
+      write.table(df.graph,paste0(ns_outDir,"Betas_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
     }
   }
 }
