@@ -601,6 +601,11 @@ for(j in t(NSmaster_list)){
 for(i in t(etacData_list)){
   
   beta_list <- read.table(paste0(etacData_location,i))
+  
+  df.post <- matrix(NA,nrow = dim(beta_list)[1],ncol = 6)
+  colnames(df.post) <- c("ROI","T","df","p","LB","RB")
+  
+  count<-1
   for(j in t(beta_list)){
     
     ### Get, clean data
@@ -652,7 +657,14 @@ for(i in t(etacData_list)){
     
     
     ### Stats
-    TT.Function(df_mean[,1],df_mean[,2],comp,anat,etac_statsDir)
+    t.out <- TT.Function(df_mean[,1],df_mean[,2],comp,anat,etac_statsDir)
+    
+    hold.t <- round(t.out$statistic,digits=2)
+    hold.df <- t.out$parameter
+    hold.p <- round(t.out$p.value,digits=6)
+    hold.ci <- round(t.out$conf.int,digits=3)
+    hold.write <- c(anat,hold.t,hold.df,hold.p,hold.ci)
+    df.post[count,] <- hold.write
 
     
     ### Graphs - don't graph lateral occipital clusters
@@ -661,6 +673,11 @@ for(i in t(etacData_list)){
         Graph.Function(df_mean,comp,anat,etac_statsDir)
       }
     }
+    count <- count+1
+  }
+  
+  if(doWrite==1){
+    write.table(df.post,paste0(etac_statsDir,"Table_",comp,".txt"),row.names = F, quote = F, sep = "\t")
   }
 }
 
