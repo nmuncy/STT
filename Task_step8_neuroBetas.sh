@@ -28,9 +28,7 @@ roiDir=${parDir}/Analyses/roiAnalysis
 betaDir=${roiDir}/ns_betas
 statDir=${roiDir}/ns_stats
 grpDir=${parDir}/Analyses/grpAnalysis
-refDir=${workDir}/sub-1295
-
-doREML=1
+refFile=${workDir}/sub-1295/SpT1_stats_REML+tlrc
 
 
 # decon vars
@@ -39,7 +37,6 @@ arrA=(1 7 1 7 1 1)										# RH RFH H FH H HH
 arrB=(4 10 4 10 4 7)									# RF RFF F FF F FH
 arrC=(7 x 7 19 x 19)									# RC  x  C CH X CH
 compLen=${#compList[@]}
-blurX=2													# blur multiplier
 
 
 # neuroSyn masks
@@ -64,24 +61,6 @@ MatchString (){
 
 ### work
 mkdir $betaDir $statDir
-
-
-# determine blur
-if [ $doREML == 1 ]; then
-	refFile=${refDir}/${compList[0]}_stats_REML
-else
-	refFile=${refDir}/${compList[0]}_stats
-fi
-
-gridSize=`3dinfo -dk ${refFile}+tlrc`
-int=`printf "%.0f" $gridSize`
-blurInt=$(($blurX * $int))
-
-if [ ! -f ${refFile}_blur${blurInt}+tlrc.HEAD ]; then
-	3dmerge -prefix ${refFile}_blur${blurInt} -1blur_fwhm $blurInt -doall ${refFile}+tlrc
-fi
-
-
 cd $roiDir
 
 c=0; for i in memory*; do
@@ -123,7 +102,7 @@ c=0; for i in memory*; do
 				3dcopy tmp_${string}_${j}.nii.gz tmp_${string}_${nameArr[$index]}+tlrc
 
 				# resample
-				3dfractionize -template ${refFile}_blur${blurInt}+tlrc -input tmp_${string}_${nameArr[$index]}+tlrc -prefix tmp_res_${string}_${nameArr[$index]}
+				3dfractionize -template $refFile -input tmp_${string}_${nameArr[$index]}+tlrc -prefix tmp_res_${string}_${nameArr[$index]}
 				3dcalc -a tmp_res_${string}_${nameArr[$index]}+tlrc -prefix Mask_NS_${string}_${nameArr[$index]} -expr "step(a-3000)"
 			fi
 		done
@@ -141,6 +120,8 @@ for i in ${!compList[@]}; do
 
 	# pull encoding/retrieval info from appropriate decons
 	pref=${compList[$i]}
+	scan=${pref}_stats_REML+tlrc
+
 
 	if [[ $pref == S* ]]; then
 		hold=Enc
@@ -155,13 +136,6 @@ for i in ${!compList[@]}; do
 		betas=${arrA[$i]},${arrB[$i]}
 	else
 		betas=${arrA[$i]},${arrB[$i]},${arrC[$i]}
-	fi
-
-
-	if [ $doREML == 1 ]; then
-		scan=${pref}_stats_REML_blur${blurInt}+tlrc
-	else
-		scan=${pref}_stats_blur${blurInt}+tlrc
 	fi
 
 
@@ -186,13 +160,6 @@ for i in ${!compList[@]}; do
 
 			if [ $? == 1 ]; then
 
-
-				# blur if necessary
-				if [ ! -f ${j}/${scan}.HEAD ]; then
-					3dmerge -prefix ${j}/${scan%+*} -1blur_fwhm ${blurInt} -doall ${j}/${scan%_*}+tlrc
-				fi
-
-
 				# get beta
 				stats=`3dROIstats -mask $mask "${j}/${scan}[${betas}]"`
 				echo "$subj $stats" >> $print
@@ -207,6 +174,7 @@ done
 
 cd $betaDir
 > Master_list_NS.txt
+
 for i in Betas*NS*; do
 	echo $i >> Master_list_NS.txt
 done

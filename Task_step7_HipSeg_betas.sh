@@ -61,7 +61,6 @@ arrA=(1 7 1 7 1 1)										# RH RFH H FH H HH
 arrB=(4 10 4 10 4 7)									# RF RFF F FF F FH
 arrC=(7 x 7 19 x 19)									# RC  x  C CH X CH
 compLen=${#compList[@]}
-blurX=2													# blur multiplier
 
 
 
@@ -88,18 +87,6 @@ else
 fi
 
 
-gridSize=`3dinfo -dk ${refFile}+tlrc`
-int=`printf "%.0f" $gridSize`
-blurInt=$(($blurX * $int))
-
-
-if [ ! -f ${refFile}_blur${blurInt}+tlrc.HEAD ]; then
-	3dmerge -prefix ${refFile}_blur${blurInt} -1blur_fwhm $blurInt -doall ${refFile}+tlrc
-	3dcopy ${refFile}_blur${blurInt}+tlrc ${refFile}_blur${blurInt}.nii.gz
-fi
-
-
-
 for i in L R; do
 	if [ ! -f Mask_${i}_CA1+tlrc.HEAD ]; then
 
@@ -107,7 +94,7 @@ for i in L R; do
 		for j in CA{1..3} DG Sub; do
 
 			c3d ${priorDir}/${i}_${j}_prob.nii.gz -thresh 0.3 1 1 0 -o tmp_${i}_${j}.nii.gz
-			3dfractionize -template ${refFile}_blur${blurInt}+tlrc -input tmp_${i}_${j}.nii.gz -prefix tmp_${i}_${j}_res
+			3dfractionize -template ${refFile}+tlrc -input tmp_${i}_${j}.nii.gz -prefix tmp_${i}_${j}_res
 			3dcalc -a tmp_${i}_${j}_res+tlrc -prefix tmp_${i}_${j}_bin -expr "step(a-3000)"
 			3dcopy tmp_${i}_${j}_bin+tlrc tmp_${i}_${j}_bin.nii.gz
 		done
@@ -150,9 +137,9 @@ for i in ${!compList[@]}; do
 
 
 	if [ $doREML == 1 ]; then
-		scan=${pref}_stats_REML_blur${blurInt}+tlrc
+		scan=${pref}_stats_REML+tlrc
 	else
-		scan=${pref}_stats_blur${blurInt}+tlrc
+		scan=${pref}_stats+tlrc
 	fi
 
 
@@ -171,11 +158,6 @@ for i in ${!compList[@]}; do
 			MatchString $subj "${arrRem[@]}"
 
 			if [ $? == 1 ]; then
-
-				if [ ! -f ${j}/${scan}.HEAD ]; then
-					3dmerge -prefix ${j}/${scan%+*} -1blur_fwhm ${blurInt} -doall ${j}/${scan%_*}+tlrc
-				fi
-
 				stats=`3dROIstats -mask ${k%.*} "${j}/${scan}[${betas}]"`
 				echo "$subj $stats" >> $print
 			fi
@@ -188,6 +170,7 @@ done
 
 cd $betaDir
 > Master_list_Sub.txt
+
 for i in Betas*sub*; do
 	echo $i >> Master_list_Sub.txt
 done
