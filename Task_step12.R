@@ -17,7 +17,7 @@ library(ez)
 parDir <- "/Volumes/Yorick/STT_reml/Analyses/"
 
 doWrite <- 1
-doGraphs <- 0
+doGraphs <- 1
 
 
 ### ROI variables
@@ -72,38 +72,40 @@ BehNames.Function <- function(dataString){
 
 EtacNames.Function <- function(x,y){
   if(grepl("SpT1",x)==T){
-    if(y=="LAG"){
-      return("L. Angular Gyrus")
-    }else if(y=="LMPFC"){
-      return("L. Medial PFC")
+    if(y=="RVS"){
+      return("R. Visual Stream")
+    }else if(y=="LVS"){
+      return("L. Visual Stream")
     }else if(y=="LPPCU"){
       return("L. Posterior Precuneus")
-    }else if(y=="RAG"){
-      return("R. Angular Gyrus")
+    }else if(y=="LAG"){
+      return("L. Angular Gyrus")
     }else if(y=="RIPS"){
       return("R. Intraparietal Sulcus")
+    }else if(y=="LDMPFC"){
+      return("L. Dorsal Medial PFC")
+    }else if(y=="RAG"){
+      return("R. Angular Gyrus")
     }
   }else if(grepl("T1_",x)==T){
-    if(y=="LDMPFC"){
-      return("L. Dorsal Medial PFC")
-    }else if(y=="LINS"){
-      return("L. Insular Cortex")
-    }else if(y=="RAG-VS"){
-      return("R. Angular Gyrus & Visual Stream")
+    if(y=="RMPFC"){
+      return("R. Medial PFC")
     }else if(y=="RAG"){
       return("R. Angular Gyrus")
     }else if(y=="RAMTG"){
       return("R. Anterior Middle Temporal Gyrus")
-    }else if(y=="RIFG"){
-      return("R. Inferior Frontal Gyrus")
     }else if(y=="RIPS"){
       return("R. Intraparietal Sulcus")
-    }else if(y=="RMPFC"){
-      return("R. Medial PFC")
     }else if(y=="RPCU"){
       return("R. Precuneus")
+    }else if(y=="LINS"){
+      return("L. Insular Cortex")
+    }else if(y=="RIFG"){
+      return("R. Inferior Frontal Gyrus")
     }else if(y=="RPUT"){
       return("R. Putamen")
+    }else if(y=="LDMPFC"){
+      return("L. Dorsal Medial PFC")
     }
   }else if(grepl("T1pT2",x)==T){
     if(y=="LINS"){
@@ -113,7 +115,7 @@ EtacNames.Function <- function(x,y){
     }
   }else if(x == "T2fT1"){
     if(y=="RPCU"){
-      return("R. Retrosplenial-Precuneus")
+      return("R. Precuneus")
     }else if(y=="RAG"){
       return("R. Angular Gyrus")
     }
@@ -331,7 +333,7 @@ MkTable.Function <- function(x,y){
 # HC Sub Analysis
 ###################
 # # For testing
-# j <- "Betas_T2_sub_data.txt"
+# j <- "Betas_T1_sub_data.txt"
 
 HCmaster_list <- read.table(paste0(subDir,"Master_list_Sub.txt"))
 
@@ -366,16 +368,18 @@ count<-1; for(j in t(HCmaster_list)){
     writeLines(output,paste0(hc_outDir,"Stats_Sub_AN_",comp,".txt"))
   }
   
-  # if(doGraphs == 1){
-  #   c<-1; while(c < dim(Mdata)[2]){
-  #     cc<-c+(num.betas-1)
-  #     hold.df <- matrix(NA,nrow=dim(Mdata)[1],ncol=num.betas)
-  #     hold.df[,1:num.betas] <- Mdata[,c:cc]
-  #     hold <- colnames(Mdata)[c]; hold.mask <- substring(hold,6)
-  #     Graph.Function(hold.df,comp,hold.mask,hc_outDir)
-  #     c<-c+num.betas
-  #   }
-  # }
+  if(doGraphs == 1){
+    if(is.na(df.pgg[count,1])==F && df.pgg[count,1] < 0.05){
+      c<-1; while(c < dim(Mdata)[2]){
+        cc<-c+(num.betas-1)
+        hold.df <- matrix(NA,nrow=dim(Mdata)[1],ncol=num.betas)
+        hold.df[,1:num.betas] <- Mdata[,c:cc]
+        hold <- colnames(Mdata)[c]; hold.mask <- substring(hold,6)
+        Graph.Function(hold.df,comp,hold.mask,hc_outDir)
+        c<-c+num.betas
+      }
+    }
+  }
   count <- count+1
 }
 
@@ -596,7 +600,7 @@ for(j in t(NSmaster_list)){
 ###################
 # # For testing
 # i <- "All_Betas_SpT1.txt"
-# j <- "Betas_SpT1_all_LAG.txt"
+# j <- "Betas_SpT1_LAG.txt"
 
 for(i in t(etacData_list)){
   
@@ -609,55 +613,35 @@ for(i in t(etacData_list)){
   for(j in t(beta_list)){
     
     ### Get, clean data
-    raw_data <- read.delim(paste0(etacData_location,j),header=F)
-    
-    # num blurs
-    ind.blur <- grep("Mask", raw_data[,1])
-    num.blurs <- as.numeric(length(ind.blur))
+    raw_data <- read.delim2(paste0(etacData_location,j),header=F)
     
     # num subjects
     ind.subj <- grep("File", raw_data[,1])
-    num.subj <- as.numeric(length(ind.subj)/num.blurs)
+    num.subj <- as.numeric(length(ind.subj))
     
     # num betas - will be 2 for ETAC
-    ind.beta <- grep("+tlrc", raw_data[,1])
-    num.betas <- as.numeric(length(ind.beta)/num.blurs/num.subj)
+    ind.beta <- grep("beh", raw_data[,2])
+    num.betas <- as.numeric(length(ind.beta)/num.subj)
     
     ind.beh1 <- ind.beta[c(TRUE, FALSE)]
     ind.beh2 <- ind.beta[c(FALSE, TRUE)]
     
     # fill df
-    df <- matrix(0,ncol=(num.betas*num.blurs),nrow=num.subj)
-    for(k in 1:num.blurs){
-      start<-k*num.subj-(num.subj-1)
-      end<-k*num.subj
-      df[,k] <- as.numeric(as.character(raw_data[ind.beh1[start:end],3]))
-      df[,(k+num.blurs)] <- as.numeric(as.character(raw_data[ind.beh2[start:end],3]))
-    }
-    
-    # get means
-    df_mean <- matrix(0,ncol=num.betas,nrow=num.subj)
-    for(k in 1:num.betas){
-      if(num.blurs > 1){
-        start<-k*num.blurs-(num.blurs-1)
-        end<-k*num.blurs
-        df_mean[,k] <- rowMeans(df[,start:end])
-      }else{
-        df_mean[,k] <- df[,k]
-      }
-    }
+    df <- matrix(0,ncol=num.betas,nrow=num.subj)
+    df[,1] <- as.numeric(as.character(raw_data[ind.beh1,3]))
+    df[,2] <- as.numeric(as.character(raw_data[ind.beh2,3]))
     
     # write out
     hold<-gsub("^.*_","",i); comp<-gsub("\\..*","",hold)
     hold1<-gsub("^.*_","",j); anat<-gsub("\\..*","",hold1)
     
     if(doWrite == 1){
-      write.table(df_mean,paste0(etacData_location,"Avg_Betas_",comp,"_",anat,".txt"),col.names=F, row.names=F,sep = "\t")
+      write.table(df,paste0(etacData_location,"Avg_Betas_",comp,"_",anat,".txt"),col.names=F, row.names=F,sep = "\t")
     }
     
     
     ### Stats
-    t.out <- TT.Function(df_mean[,1],df_mean[,2],comp,anat,etac_statsDir)
+    t.out <- TT.Function(df[,1],df[,2],comp,anat,etac_statsDir)
     
     hold.t <- round(t.out$statistic,digits=2)
     hold.df <- t.out$parameter
@@ -667,11 +651,9 @@ for(i in t(etacData_list)){
     df.post[count,] <- hold.write
 
     
-    ### Graphs - don't graph lateral occipital clusters
-    if(grepl("LOS",anat)==F){
-      if(doGraphs == 1){
-        Graph.Function(df_mean,comp,anat,etac_statsDir)
-      }
+    ### Graphs
+    if(doGraphs == 1){
+      Graph.Function(df,comp,anat,etac_statsDir)
     }
     count <- count+1
   }
