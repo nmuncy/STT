@@ -89,7 +89,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 parDir=~/compute/STT_reml
 workDir=${parDir}/derivatives								# par dir of data
 outDir=${parDir}/Analyses/grpAnalysis						# where output will be written (should match step3)
-refFile=${workDir}/sub-1295/run-1_STUDY_scale+tlrc			# reference file, for finding dimensions etc
+refFile=${workDir}/sub-1295/T2fT1_stats_REML+tlrc			# reference file, for finding dimensions etc
 
 tempDir=~/bin/Templates/vold2_mni							# desired template
 priorDir=${tempDir}/priors_ACT								# location of atropos priors
