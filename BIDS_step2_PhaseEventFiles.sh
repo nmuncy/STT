@@ -40,9 +40,10 @@ suffix=1D		   								# suffix of timing file (1D or txt)
 
 phaseArr=(Study Test1 Test2)
 phaseDur=(3 3 4.5)
-StudyNames=(RpHit RpFA RpCR RpMiss NR RpHpH RpHpF RpFpH RpFpF RpMpCH RpMpCF NR)
-Test1Names=(Hit FA CR Miss NR HpH HpF FpH FpF MpH MpF CpH CpF NR)
-Test2Names=(Hit FA NR HfH FfH HfF FfF HfM FfM HfC FfC NR)
+StudyNames=(RpHit RpFA RpCR RpMiss NR RpHpH RpHpF RpFpH RpFpF RpCMpH RpCMpF NRpXpX)
+Test1Names=(Hit FA Miss CR NR HpH HpF FpH FpF MpH MpF CpH CpF NRpX)
+Test2Names=(Hit FA NR HfH FfH HfF FfF HfM FfM HfC FfC NRfX)
+sepString=("p[A-Z]*p" p f)
 
 
 
@@ -88,8 +89,8 @@ for i in sub-1295; do
 
 			# start tmp file for each run/row
 			runCount=$(($runCount + 1))
-			tmpFile=${rawPath}/tmp_event_run-${runCount}.txt
-			> $tmpFile
+			tmpFile=${rawPath}/tmp_event_run-${runCount}
+			> ${tmpFile}.txt
 
 			## extract row from each TF, write it to $tmpFile & add beh, duration
 			c=0; while [ $c -lt ${#tfArr[@]} ]; do
@@ -103,32 +104,43 @@ for i in sub-1295; do
 
 				# pull values from row $row of timing file
 				holdArr=(`sed "${row}q;d" ${tfPath}/${tfArr[$c]}`)
-				for k in ${holdArr[@]}; do
 
-					# determine start, duration
-					if (( ${#phaseDur[@]} )); then
-						start=$k
-						dur=${phaseDur[$count]}
-					else
-						start=${k%\:*}
-						dur=${k#*\:}
-					fi
+				# make sure a float is in the 1D file, not an asterisk - which prints out contents of current working directory
+				float='^[0-9]+([.][0-9]+)?$'
+				if [[ ${holdArr[0]} =~ $float ]]; then
 
-					# write columns
-					echo -e "${start}\t${dur}\t$beh" >> $tmpFile
-				done
+					for k in ${holdArr[@]}; do
+
+						# determine start, duration
+						if (( ${#phaseDur[@]} )); then
+							start=$k
+							dur=${phaseDur[$count]}
+						else
+							start=${k%\:*}
+							dur=${k#*\:}
+						fi
+
+						# write columns
+						echo -e "${start}\t${dur}\t$beh" >> ${tmpFile}.txt
+					done
+				fi
 
 				let c=$[$c+1]
 			done
 
 
+			# sort tmp file, sort by behavior
+			tmpString=${sepString[$count]}
+			sort -k1 -n ${tmpFile}.txt | grep -v $tmpString > ${tmpFile}_matchGrep.txt
+			sort -k1 -n ${tmpFile}.txt | grep $tmpString | cut -f 3 > ${tmpFile}_invertGrep.txt
+
+
 			# make header for event file
 			eventFile=${rawPath}/${i}_task-${taskName}_run-${runCount}_events.tsv
-			echo -e "onset\tduration\ttrial_type" > $eventFile
+			echo -e "onset\tduration\ttrial_type_a\ttrial_type_b" > $eventFile
+			paste ${tmpFile}_matchGrep.txt ${tmpFile}_invertGrep.txt >> $eventFile
 
-			# sort tmp file, write event file
-			sort -k1 -n $tmpFile >> $eventFile
-			# rm $tmpFile
+			# rm tmp*
 		done
 
 		let count=$[$count+1]

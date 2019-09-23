@@ -46,8 +46,8 @@ outDir=${grpDir}/etac_betas
 
 
 fileArr=(SpT1 SpT1pT2 T1 T1pT2 T2 T2fT1)							# decon files from which betas will be extracted - should match step4.
-arrA=(1 7 1 7 1 1)													# sub-bricks corresponding to $fileArr
-arrB=(4 10 4 10 4 7)
+arrA=(1 7 1 7 1 7)													# sub-bricks corresponding to $fileArr
+arrB=(4 10 4 10 4 10)
 arrLen=${#arrA[@]}
 
 

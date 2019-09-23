@@ -49,7 +49,8 @@ GraphNames.Function <- function(dataString){
   else if(dataString=="T1"){return(list(n1="Hit", n2="FA", n3="CR"))}
   else if(dataString=="T1pT2"){return(list(n1="FpH", n2="FpF", n3="CpH"))}
   else if(dataString=="T2"){return(list(n1="Hit", n2="FA"))}
-  else if(dataString=="T2fT1"){return(list(n1="HfH", n2="HfF", n3="HfC"))}
+  # else if(dataString=="T2fT1"){return(list(n1="HfH", n2="HfF", n3="HfC"))}
+  else if(dataString=="T2fT1"){return(list(n1="HfF", n2="FfF", n3="HfC"))}
 }
 
 GraphEtacNames.Function <- function(dataString){
@@ -67,7 +68,8 @@ BehNames.Function <- function(dataString){
   else if(dataString=="T1"){out<-c("H1","F1","CR"); return(out)}
   else if(dataString=="T1pT2"){out<-c("F1H2","F1F2","C1H2"); return(out)}
   else if(dataString=="T2"){out<-c("H2","F2"); return(out)}
-  else if(dataString=="T2fT1"){out<-c("H1H2","F1H2","C1H2"); return(out)}
+  # else if(dataString=="T2fT1"){out<-c("H1H2","F1H2","C1H2"); return(out)}
+  else if(dataString=="T2fT1"){out<-c("F1H2","F1F2","C1H2"); return(out)}
 }
 
 EtacNames.Function <- function(x,y){
@@ -427,7 +429,7 @@ if(doWrite == 1){
 # NeuroSynth Analysis
 ###################
 # # For testing
-# j <- "Betas_T1_NS_data.txt"
+# j <- "Betas_T2fT1_NS_data.txt"
 
 NSmaster_list <- read.table(paste0(nsDir,"Master_list_NS.txt"))
 

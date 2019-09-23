@@ -77,7 +77,7 @@ NotLazy=1												# 1=on
 
 arrSpT1=(R-Hit R-FA R-CR R-Miss NR)						# arrFoo matches a $deconPref value, one string per .1D file (e.g. arrSpT1=(Hit CR Miss FA))
 arrSpT1pT2=(R-HH R-HF R-FH R-FF R-MCH R-MCF NR)
-arrT1=(T1Hit T1FA T1CR T1Miss NR)
+arrT1=(T1Hit T1FA T1Miss T1CR NR)
 arrT1pT2=(HH HF FH FF MH MF CH CF NR)
 arrT2=(T2Hit T2FA NR)
 arrT2fT1=(H1H2 H1F2 F1H2 F1F2 M1H2 M1F2 C1H2 C1F2 NR)
