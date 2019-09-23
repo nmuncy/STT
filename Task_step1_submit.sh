@@ -16,8 +16,8 @@ cd ${workDir}/derivatives
 for i in sub*; do
 
     sbatch \
-    -o ${outDir}/output_con1_${i}.txt \
-    -e ${outDir}/error_con1_${i}.txt \
+    -o ${outDir}/output_TS1_${i}.txt \
+    -e ${outDir}/error_TS1_${i}.txt \
     ${scriptDir}/Task_step1_sbatch_preproc.sh $i
 
     sleep 1

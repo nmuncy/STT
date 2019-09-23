@@ -310,7 +310,7 @@ fi
 # Registration cost is recorded
 
 
-if [ ! -s anat.un.aff.Xat.1D ]; then
+if [ ! -d awpy ]; then
 
 	# calc align of epi/anat
 	align_epi_anat.py \
