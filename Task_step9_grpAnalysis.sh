@@ -89,7 +89,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 parDir=~/compute/STT_reml
 workDir=${parDir}/derivatives								# par dir of data
 outDir=${parDir}/Analyses/grpAnalysis						# where output will be written (should match step3)
-refFile=${workDir}/sub-1295/run-1_STUDY_scale+tlrc			# reference file, for finding dimensions etc
+refFile=${workDir}/sub-1295/T2fT1_stats_REML+tlrc			# reference file, for finding dimensions etc
 
 tempDir=~/bin/Templates/vold2_mni							# desired template
 priorDir=${tempDir}/priors_ACT								# location of atropos priors
@@ -107,13 +107,13 @@ thr=0.3														# thresh value for Group_EPI_mask, ref Group_EPI_mean
 compList=(SpT1 SpT1pT2 T1 T1pT2 T2 T2fT1)					# matches decon prefixes, and will be prefix of output files
 compLen=${#compList[@]}
 
-arrA=(1 7 1 7 1 1)											# setA beh sub-brik for compList. Must be same length as compList
-arrB=(4 10 4 10 4 7)										# setB
+arrA=(1 7 1 7 1 7)											# setA beh sub-brik for compList. Must be same length as compList
+arrB=(4 10 4 10 4 10)										# setB
 #arrC=(39 59 65)
 listX=AB													# list of arr? used, for building permutations (e.g. listX=ABC)
 
-namA=(RpH RpFH Hit FpH Hit HpH)								# names of behaviors from arrA. Must be same length as arrA
-namB=(RpF RpFF FA  FpF FA  FpH)
+namA=(RpH RpFH Hit FpH Hit HfF)								# names of behaviors from arrA. Must be same length as arrA
+namB=(RpF RpFF FA  FpF FA  FfF)
 #namC=(RpCR CR MpH)
 
 
