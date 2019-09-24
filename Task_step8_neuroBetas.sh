@@ -35,7 +35,7 @@ refFile=${workDir}/sub-1295/SpT1_stats_REML+tlrc
 compList=(SpT1 SpT1pT2 T1 T1pT2 T2 T2fT1)				# matches decon prefix
 arrA=(1 7 1 7 1 7)										# RH RFH H FH H FH
 arrB=(4 10 4 10 4 10)									# RF RFF F FF F FF
-arrC=(7 x 7 19 x 19)									# RC  x  C CH X CH
+arrC=(7 x 10 19 x 19)									# RC  x  C CH X CH
 compLen=${#compList[@]}
 
 
