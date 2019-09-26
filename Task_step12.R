@@ -370,18 +370,18 @@ count<-1; for(j in t(HCmaster_list)){
     writeLines(output,paste0(hc_outDir,"Stats_Sub_AN_",comp,".txt"))
   }
   
-  if(doGraphs == 1){
-    if(is.na(df.pgg[count,1])==F && df.pgg[count,1] < 0.05){
-      c<-1; while(c < dim(Mdata)[2]){
-        cc<-c+(num.betas-1)
-        hold.df <- matrix(NA,nrow=dim(Mdata)[1],ncol=num.betas)
-        hold.df[,1:num.betas] <- Mdata[,c:cc]
-        hold <- colnames(Mdata)[c]; hold.mask <- substring(hold,6)
-        Graph.Function(hold.df,comp,hold.mask,hc_outDir)
-        c<-c+num.betas
-      }
-    }
-  }
+  # if(doGraphs == 1){
+  #   if(is.na(df.pgg[count,1])==F && df.pgg[count,1] < 0.05){
+  #     c<-1; while(c < dim(Mdata)[2]){
+  #       cc<-c+(num.betas-1)
+  #       hold.df <- matrix(NA,nrow=dim(Mdata)[1],ncol=num.betas)
+  #       hold.df[,1:num.betas] <- Mdata[,c:cc]
+  #       hold <- colnames(Mdata)[c]; hold.mask <- substring(hold,6)
+  #       Graph.Function(hold.df,comp,hold.mask,hc_outDir)
+  #       c<-c+num.betas
+  #     }
+  #   }
+  # }
   count <- count+1
 }
 
@@ -418,6 +418,99 @@ df.pall[5:6,2] <- p.output
 
 if(doWrite == 1){
   write.table(df.pall,file=paste0(hc_outDir,"Stats_Sub_AN_all_adj-p.txt"),sep="\t",row.names=T,col.names=T)
+}
+
+
+
+### Post-hoc analyses
+# j <- t(HCmaster_list)[4]
+for(j in t(HCmaster_list)){
+  
+  df.pall <- read.table(paste0(hc_outDir,"Stats_Sub_AN_all_adj-p.txt"))
+  count<-0; if(df.pall[j,2] < 0.05){
+    
+    ## get info
+    hold <- read.delim(paste0(subDir,j),header=F)
+    Mdata <- Mdata.Function(hold)
+
+    hold <- gsub("^.*?_","",j)
+    comp <- gsub("_.*$","",hold)
+    beh <- BehNames.Function(comp)
+
+    # set up table, determine all pairwise combinations
+    perm.set <- t(combn(1:num.betas,2))
+    num.comp <- dim(perm.set)[1]
+
+    df.post <- matrix(NA,nrow = num.mask,ncol = 1+(num.comp*6))
+    colnames(df.post) <- c("ROI",rep(c("Comp","T","df","p","LB","RB"),num.comp))
+
+    # set up table
+    df.graph <- matrix(NA,nrow = num.subj,ncol=0)
+
+    # reduce two-way to multiple one-ways
+    c<-1; while(c <= (dim(Mdata)[2]-(num.betas-1))){
+
+      cc <- c+(num.betas-1)
+      hold <- colnames(Mdata)[c]; hold.mask <- substring(hold,6)
+      hold.df <- matrix(NA,nrow=num.subj,ncol=num.betas)
+      hold.df <- Mdata[,c:cc]
+
+      # convert to Long, run ANOVA
+      hold.df_long <- LWC.Function(hold.mask,beh,num.subj,hold.df)
+      stats.hold <- ezANOVA(hold.df_long,dv=Value,wid=Subj,within=Behavior,type='III')
+      p.hold <- stats.hold$ANOVA$p
+
+      ## if one-way is sig, write it then run post-hocs and graphs
+      if(p.hold < 0.05){
+        count <- count+1
+
+        # if GG is used
+        if("Sphericity Corrections" %in% names(stats.hold)){
+          pgg.hold <- stats.hold$`Sphericity Corrections`$`p[GG]`
+
+          # only continue if sig GG
+          if(pgg.hold < 0.05){
+
+            # write one way anova
+            if(doWrite == 1){
+              output <- capture.output(stats.hold)
+              writeLines(output,paste0(hc_outDir,"Stats_ANow_",comp,"_",hold.mask,".txt"))
+            }else{
+              print(stats.hold)
+            }
+
+            # post ts, table, graphs
+            df.post[count,] <- MkTable.Function(hold.df,perm.set)
+            df.graph <- cbind(df.graph,hold.df)
+            if(doGraphs == 1){
+              Graph.Function(hold.df,comp,hold.mask,hc_outDir)
+            }
+          }
+        }else{
+          if(doWrite == 1){
+            output <- capture.output(stats.hold)
+            writeLines(output,paste0(ns_outDir,"Stats_ANow_",comp,"_",hold.mask,".txt"))
+          }else{
+            print(stats.hold)
+          }
+
+          # post ts, table, graphs
+          df.post[count,] <- MkTable.Function(hold.df,perm.set)
+          if(doGraphs == 1){
+            Graph.Function(hold.df,comp,hold.mask,ns_outDir)
+          }
+        }
+      }
+      c<-cc+1
+    }
+
+    # write table
+    df.output <- na.omit(df.post)
+    if(doWrite==1){
+      write.table(df.output,paste0(hc_outDir,"Stats_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
+      write.table(df.graph,paste0(hc_outDir,"Betas_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
+    }
+  }
 }
 
 
