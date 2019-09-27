@@ -9,20 +9,32 @@
 # 1) This script is written to run following a deconvolution script (e.g. Task_step2).
 #
 # 2) It will find timing files in derivatives/sub-123/timing_files, and use these
-# to write out event files in rawdata/sub-123/func.
+# 		to write out event files in rawdata/sub-123/func.
 #
-# 3) It is currently only written for fixed durations, an update will follow
-# at some point for a variable duration.
-#
-# 4) TimingNames is only used for 1D files. List these behaviors in the same order that bash would list the timing files. E.g.:
-#
-#		TimingNames=(Hit Miss) would correspond to
-#		behVect.01.1D (Hit) and behVect.02.1D (Miss)
-#
-# 5) Naming for txt files should be embedded in the file name. E.g. sub-1234_TF_Hit_All.txt
+# 3) Naming for txt files should be embedded in the file name. E.g. sub-1234_TF_Hit_All.txt
 #		Determining behavior ($beh) for txt files is currently written for Temporal timing files named like the previous example
 #
-# 6) Assumes that the only files in derivatives/sub-1234/timing_files are the 1D/txt timing files
+# 4) Assumes that the only files in derivatives/sub-1234/timing_files are the 1D/txt timing files
+#
+# 5) $fooNames, the behaviors of all phase deconvolutions are listed out, in the same order as $phaseArr. They should also be in
+#		order according to how they would be listed by bash. E.g. foo_vect.01.1D = Hit, foo_vect.02.1D = FA, so fooNames(Hit FA).
+#		The phase must also be part of the file name, and the phases are kept straight by listing aout all matches. Multiple deconvolutions
+#		for the same phase is supported, but the output of "ls timing_files/${phaseArr[?]}*" should have the same length as number of behaviors
+#		in fooNames.
+#
+#		Example:
+#			phaseArr=(Study Test)
+#			StudyNames=(RpHit RpFA)
+#			TestNames=(Hit1 FA1 Hit2 FA2)
+#
+#			ls timing_files =
+#				Study_vect.01.1D (This is RpHit)
+#				Study_vect.02.1D (This is RpFA)
+#				Test_decon1_vect.01.1D (This is Hit from decon 1)
+#				Test_decon1_vect.02.1D (This is FA)
+#				Test_decon2_vect.01.1D (This is Hit from decon 2)
+#				Test_decon2_vect.02.1D (This is FA)
+
 
 
 
@@ -32,18 +44,16 @@ derivDir=${parDir}/derivatives
 rawDir=${parDir}/rawdata
 
 
-taskName=stt									# name of task (ref Task_step0)
-# duration=3										# duration of trial (ref Task_step2). Leave empty of duration varies (e.g. 1:1.3 5:0.8)
-suffix=1D		   								# suffix of timing file (1D or txt)
-# TimingNames=() 									# behaviors corresponding to 1D timing files (ref Task_step2 NotLazy section)
+taskName=stt										# name of task (ref Task_step0)
+suffix=1D		   									# suffix of timing file (1D or txt). Pay attention to note 3 if txt
 
 
-phaseArr=(Study Test1 Test2)
-phaseDur=(3 3 4.5)
-StudyNames=(RpHit RpFA RpCR RpMiss NR RpHpH RpHpF RpFpH RpFpF RpCMpH RpCMpF NRpXpX)
+phaseArr=(Study Test1 Test2)						# Phases of experiment
+phaseDur=(3 3 4.5)									# BLOCK duration of each phase in $phaseArr
+StudyNames=(RpHit RpFA RpCR RpMiss NR RpHpH RpHpF RpFpH RpFpF RpCMpH RpCMpF NRpXpX)		#fooNames, where foo=position in $phaseArr. See note 5
 Test1Names=(Hit FA Miss CR NR HpH HpF FpH FpF MpH MpF CpH CpF NRpX)
 Test2Names=(Hit FA NR HfH FfH HfF FfF HfM FfM HfC FfC NRfX)
-sepString=("p[A-Z]*p" p f)
+sepString=("p[A-Z]*p" p f)							# a string (or regex) used by grep to differentiate behaviors from different decons in same phase of fooNames
 
 
 
@@ -56,7 +66,7 @@ sepString=("p[A-Z]*p" p f)
 
 cd $rawDir
 
-for i in sub-1295; do
+for i in sub-*; do
 
 	# Set subj paths
 	tfPath=${derivDir}/${i}/timing_files
@@ -140,7 +150,7 @@ for i in sub-1295; do
 			echo -e "onset\tduration\ttrial_type_a\ttrial_type_b" > $eventFile
 			paste ${tmpFile}_matchGrep.txt ${tmpFile}_invertGrep.txt >> $eventFile
 
-			# rm tmp*
+			rm ${rawPath}/tmp*
 		done
 
 		let count=$[$count+1]
