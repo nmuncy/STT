@@ -6,13 +6,13 @@
 
 # --- Notes
 #
-# 1) This script is written to run following a deconvolution script (e.g. Task_step2).
+# 0) This script will support multiple deconvolutions and/or multiple phases of an experiment
 #
-# 2) It will find timing files in derivatives/sub-123/timing_files, and use these
-# 		to write out event files in rawdata/sub-123/func.
+# 1) This script is written to run following a deconvolution script (e.g. Task_step2), finds files in derivatives/sub-123/timing_files,
+#		and writes to rawdata/sub-123/func
 #
 # 3) Naming for txt files should be embedded in the file name. E.g. sub-1234_TF_Hit_All.txt
-#		Determining behavior ($beh) for txt files is currently written for Temporal timing files named like the previous example
+#		Determining behavior ($beh) for txt files is currently written for Temporal timing files named like the previous example (see Temporal note on line 112)
 #
 # 4) Assumes that the only files in derivatives/sub-1234/timing_files are the 1D/txt timing files
 #
