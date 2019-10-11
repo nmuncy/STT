@@ -8,7 +8,7 @@ session=STT
 
 
 cd $rawDir
-echo -e "subject_id\tsex\tage" > participants.tsv
+echo -e "participant_id\tsex\tage" > participants.tsv
 
 for i in s*; do
 	age=`dicom_hdr ${dicomDir}/${i}/ses-${session}/dicom/t1*/IM*001.dcm | grep "0010 1010" | sed 's/.*\///' | sed 's/[^0-9]//'`
