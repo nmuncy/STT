@@ -172,6 +172,32 @@ for i in ${!compList[@]}; do
 done
 
 
+## patch for T1pT2 encoding masks
+# hardcoded for simplicity, above logic doesn't work for multiple arrays per decon
+pref=T1pT2
+scan=${pref}_stats_REML+tlrc
+betas=7,10,19
+
+arrRem=(`cat ${grpDir}/info_rmSubj_${pref}.txt`)
+print=${betaDir}/Betas_${pref}_NSEnc_data.txt
+> $print
+
+for k in ${arrEnc[@]}; do
+	echo "Mask $k" >> $print
+	mask=Mask_NS_Enc_${k}+tlrc
+	for j in ${workDir}/s*; do
+		subj=${j##*\/}
+		MatchString $subj "${arrRem[@]}"
+		if [ $? == 1 ]; then
+			stats=`3dROIstats -mask $mask "${j}/${scan}[${betas}]"`
+			echo "$subj $stats" >> $print
+		fi
+	done
+	echo >> $print
+done
+
+
+# organize output
 cd $betaDir
 > Master_list_NS.txt
 

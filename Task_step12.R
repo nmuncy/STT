@@ -17,7 +17,7 @@ library(ez)
 parDir <- "/Volumes/Yorick/STT_reml/Analyses/"
 
 doWrite <- 1
-doGraphs <- 1
+doGraphs <- 0
 
 
 ### ROI variables
@@ -522,7 +522,7 @@ for(j in t(HCmaster_list)){
 # NeuroSynth Analysis
 ###################
 # # For testing
-# j <- "Betas_T2fT1_NS_data.txt"
+# j <- "Betas_T1pT2_NSEnc_data.txt"
 
 NSmaster_list <- read.table(paste0(nsDir,"Master_list_NS.txt"))
 
@@ -554,7 +554,14 @@ count<-1; for(j in t(NSmaster_list)){
 
   if(doWrite == 1){
     output <- capture.output(stats)
-    writeLines(output,paste0(ns_outDir,"Stats_AN_",comp,".txt"))
+    
+    #detect update
+    if(grepl("NSEnc",j)==T){
+      holdOut<-paste0(comp,"Enc")
+    }else{
+      holdOut<-comp
+    }
+    writeLines(output,paste0(ns_outDir,"Stats_AN_",holdOut,".txt"))
   }
   count<-count+1
 }
