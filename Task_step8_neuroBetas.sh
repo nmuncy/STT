@@ -25,8 +25,8 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 parDir=~/compute/STT_reml
 workDir=${parDir}/derivatives
 roiDir=${parDir}/Analyses/roiAnalysis
-betaDir=${roiDir}/ns_betas
-statDir=${roiDir}/ns_stats
+betaDir=${roiDir}/ns_betas_RR1
+statDir=${roiDir}/ns_stats_RR1
 grpDir=${parDir}/Analyses/grpAnalysis
 refFile=${workDir}/sub-1295/SpT1_stats_REML+tlrc
 
@@ -35,7 +35,7 @@ refFile=${workDir}/sub-1295/SpT1_stats_REML+tlrc
 compList=(SpT1 SpT1pT2 T1 T1pT2 T2 T2fT1)				# matches decon prefix
 arrA=(1 7 1 7 1 7)										# RH RFH H FH H FH
 arrB=(4 10 4 10 4 10)									# RF RFF F FF F FF
-arrC=(7 x 10 19 x 19)									# RC  x  C CH X CH
+#arrC=(7 x 10 19 x 19)									# RC  x  C CH X CH
 compLen=${#compList[@]}
 
 
@@ -132,11 +132,13 @@ for i in ${!compList[@]}; do
 
 
 	# determine scan, bricks
-	if [ $pref == SpT1pT2 ] || [ $pref == T2 ]; then
-		betas=${arrA[$i]},${arrB[$i]}
-	else
-		betas=${arrA[$i]},${arrB[$i]},${arrC[$i]}
-	fi
+	# if [ $pref == SpT1pT2 ] || [ $pref == T2 ]; then
+	# 	betas=${arrA[$i]},${arrB[$i]}
+	# else
+	# 	betas=${arrA[$i]},${arrB[$i]},${arrC[$i]}
+	# fi
+
+	betas=${arrA[$i]},${arrB[$i]}
 
 
 	# find who to remove, print
@@ -176,7 +178,8 @@ done
 # hardcoded for simplicity, above logic doesn't work for multiple arrays per decon
 pref=T1pT2
 scan=${pref}_stats_REML+tlrc
-betas=7,10,19
+# betas=7,10,19
+betas=7,10
 
 arrRem=(`cat ${grpDir}/info_rmSubj_${pref}.txt`)
 print=${betaDir}/Betas_${pref}_NSEnc_data.txt

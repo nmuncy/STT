@@ -1,4 +1,3 @@
-library(tiff)
 library(reshape2)
 library(ez)
 
@@ -14,20 +13,21 @@ library(ez)
 # Set up
 ###################
 
-parDir <- "/Volumes/Yorick/STT_reml/Analyses/"
+# parDir <- "../Analyses/"
+parDir <- "/run/user/1000/gvfs/afp-volume:host=10.5.72.18,user=exp,volume=Yorick/STT_reml/Analyses/"
 
 doWrite <- 1
-doGraphs <- 0
+doGraphs <- 1
 
 
 ### ROI variables
 roiDir <- paste0(parDir,"roiAnalysis/")
 
-subDir <- paste0(roiDir,"sub_betas/")
-hc_outDir <- paste0(roiDir,"sub_stats/")
+subDir <- paste0(roiDir,"sub_betas_RR1/")
+hc_outDir <- paste0(roiDir,"sub_stats_RR1/")
 
-nsDir <- paste0(roiDir,"ns_betas/")
-ns_outDir <- paste0(roiDir,"ns_stats/")
+nsDir <- paste0(roiDir,"ns_betas_RR1/")
+ns_outDir <- paste0(roiDir,"ns_stats_RR1/")
 
 
 ### Etac variables
@@ -44,13 +44,20 @@ etac_statsDir <- paste0(etacDir,"etac_stats/")
 # Functions
 ###################
 GraphNames.Function <- function(dataString){
-  if(dataString=="SpT1"){return(list(n1="RpHit", n2="RpFA", n3="RpCR"))}
+  # if(dataString=="SpT1"){return(list(n1="RpHit", n2="RpFA", n3="RpCR"))}
+  # else if(dataString=="SpT1pT2"){return(list(n1="RpFpH", n2="RpFpF"))}
+  # else if(dataString=="T1"){return(list(n1="Hit", n2="FA", n3="CR"))}
+  # else if(dataString=="T1pT2"){return(list(n1="FpH", n2="FpF", n3="CpH"))}
+  # else if(dataString=="T2"){return(list(n1="Hit", n2="FA"))}
+  # # else if(dataString=="T2fT1"){return(list(n1="HfH", n2="HfF", n3="HfC"))}
+  # else if(dataString=="T2fT1"){return(list(n1="HfF", n2="FfF", n3="HfC"))}
+  
+  if(dataString=="SpT1"){return(list(n1="RpHit", n2="RpFA"))}
   else if(dataString=="SpT1pT2"){return(list(n1="RpFpH", n2="RpFpF"))}
-  else if(dataString=="T1"){return(list(n1="Hit", n2="FA", n3="CR"))}
-  else if(dataString=="T1pT2"){return(list(n1="FpH", n2="FpF", n3="CpH"))}
+  else if(dataString=="T1"){return(list(n1="Hit", n2="FA"))}
+  else if(dataString=="T1pT2"){return(list(n1="FpH", n2="FpF"))}
   else if(dataString=="T2"){return(list(n1="Hit", n2="FA"))}
-  # else if(dataString=="T2fT1"){return(list(n1="HfH", n2="HfF", n3="HfC"))}
-  else if(dataString=="T2fT1"){return(list(n1="HfF", n2="FfF", n3="HfC"))}
+  else if(dataString=="T2fT1"){return(list(n1="HfF", n2="FfF"))}
 }
 
 GraphEtacNames.Function <- function(dataString){
@@ -63,13 +70,20 @@ GraphEtacNames.Function <- function(dataString){
 }
 
 BehNames.Function <- function(dataString){
-  if(dataString=="SpT1"){out<-c("RH1","RF1","RCR"); return(out)}
+  # if(dataString=="SpT1"){out<-c("RH1","RF1","RCR"); return(out)}
+  # else if(dataString=="SpT1pT2"){out<-c("RF1H2","RF1F2"); return(out)}
+  # else if(dataString=="T1"){out<-c("H1","F1","CR"); return(out)}
+  # else if(dataString=="T1pT2"){out<-c("F1H2","F1F2","C1H2"); return(out)}
+  # else if(dataString=="T2"){out<-c("H2","F2"); return(out)}
+  # # else if(dataString=="T2fT1"){out<-c("H1H2","F1H2","C1H2"); return(out)}
+  # else if(dataString=="T2fT1"){out<-c("F1H2","F1F2","C1H2"); return(out)}
+  
+  if(dataString=="SpT1"){out<-c("RH1","RF1"); return(out)}
   else if(dataString=="SpT1pT2"){out<-c("RF1H2","RF1F2"); return(out)}
-  else if(dataString=="T1"){out<-c("H1","F1","CR"); return(out)}
-  else if(dataString=="T1pT2"){out<-c("F1H2","F1F2","C1H2"); return(out)}
+  else if(dataString=="T1"){out<-c("H1","F1"); return(out)}
+  else if(dataString=="T1pT2"){out<-c("F1H2","F1F2"); return(out)}
   else if(dataString=="T2"){out<-c("H2","F2"); return(out)}
-  # else if(dataString=="T2fT1"){out<-c("H1H2","F1H2","C1H2"); return(out)}
-  else if(dataString=="T2fT1"){out<-c("F1H2","F1F2","C1H2"); return(out)}
+  else if(dataString=="T2fT1"){out<-c("F1H2","F1F2"); return(out)}
 }
 
 EtacNames.Function <- function(x,y){
@@ -185,8 +199,9 @@ Graph.Function <- function(DF,output_name,maskN,out_place){
   plotable[2,] <- E.BARS
   
   if(doWrite == 1){
-    graphOut <- paste0(out_place,"Graph_",output_name,"_",TITLE,".tiff")
-    bitmap(graphOut, width = 6.5, units = 'in', type="tiff24nc", res=1200)
+    graphOut <- paste0(out_place,"Graph_",output_name,"_",TITLE,".png")
+    # bitmap(graphOut, width = 6.5, units = 'in', type="tiff24nc", res=1200)
+    bitmap(graphOut, width = 6.5, units = 'in', res=300)
   }
   barCenters <- barplot(plotable[1,], names.arg = c(XNAMES), main=ROI, ylab="Beta Coefficient",ylim=RANGE)
   segments(barCenters, MEANS-E.BARS, barCenters, MEANS+E.BARS)
@@ -522,7 +537,7 @@ for(j in t(HCmaster_list)){
 # NeuroSynth Analysis
 ###################
 # # For testing
-# j <- "Betas_T1pT2_NSEnc_data.txt"
+# j <- "Betas_T1pT2_NS_data.txt"
 
 NSmaster_list <- read.table(paste0(nsDir,"Master_list_NS.txt"))
 

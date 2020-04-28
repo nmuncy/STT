@@ -47,7 +47,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 parDir=~/compute/STT_reml
 workDir=${parDir}/derivatives
 roiDir=${parDir}/Analyses/roiAnalysis
-betaDir=${roiDir}/sub_betas
+betaDir=${roiDir}/sub_betas_RR1
 grpDir=${parDir}/Analyses/grpAnalysis
 priorDir=~/bin/Templates/vold2_mni/priors_HipSeg
 refDir=${workDir}/sub-1295
@@ -59,7 +59,7 @@ doREML=1
 compList=(SpT1 SpT1pT2 T1 T1pT2 T2 T2fT1)				# matches decon prefix
 arrA=(1 7 1 7 1 7)										# RH RFH H FH H FH
 arrB=(4 10 4 10 4 10)									# RF RFF F FF F FF
-arrC=(7 x 10 19 x 19)									# RC  x  C CH X CH
+#arrC=(7 x 10 19 x 19)									# RC  x  C CH X CH
 compLen=${#compList[@]}
 
 
@@ -129,11 +129,12 @@ for i in ${!compList[@]}; do
 	pref=${compList[$i]}
 
 
-	if [ $pref == SpT1pT2 ] || [ $pref == T2 ]; then
-		betas=${arrA[$i]},${arrB[$i]}
-	else
-		betas=${arrA[$i]},${arrB[$i]},${arrC[$i]}
-	fi
+	# if [ $pref == SpT1pT2 ] || [ $pref == T2 ]; then
+	# 	betas=${arrA[$i]},${arrB[$i]}
+	# else
+	# 	betas=${arrA[$i]},${arrB[$i]},${arrC[$i]}
+	# fi
+	betas=${arrA[$i]},${arrB[$i]}
 
 
 	if [ $doREML == 1 ]; then
@@ -147,7 +148,8 @@ for i in ${!compList[@]}; do
 	print=${betaDir}/Betas_${pref}_sub_data.txt
 	> $print
 
-	for k in Mask_{L,R}*.HEAD; do
+	# for k in Mask_{L,R}*.HEAD; do
+	for k in Mask_{L,R}_{CA1,Multi}*.HEAD; do
 
 		hold=${k#*_}
 		echo "Mask ${hold%+*}" >> $print
