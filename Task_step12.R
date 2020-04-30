@@ -437,13 +437,18 @@ if(doWrite == 1){
 
 
 
+
 ### Post-hoc analyses
 # j <- t(HCmaster_list)[4]
+
+# update: no sig interactions, so no post-hoc needed.
+#   this will be left in the script, but not reported.
+
 for(j in t(HCmaster_list)){
-  
+
   df.pall <- read.table(paste0(hc_outDir,"Stats_Sub_AN_all_adj-p.txt"))
   count<-0; if(df.pall[j,2] < 0.05){
-    
+
     ## get info
     hold <- read.delim(paste0(subDir,j),header=F)
     Mdata <- Mdata.Function(hold)
@@ -619,6 +624,10 @@ if(doWrite == 1){
 
 
 ### Post-hoc analyses
+
+# update: with a reduction in behaviors, one-way AN and t-test stats are now identical (only two behaviors being investigated)
+#   this section won't be updated, but only the t-tests will be reported.
+
 for(j in t(NSmaster_list)){
   
   df.pall <- read.table(paste0(ns_outDir,"Stats_AN_all_adj-p.txt"))
