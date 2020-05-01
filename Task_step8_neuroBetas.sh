@@ -35,7 +35,8 @@ refFile=${workDir}/sub-1295/SpT1_stats_REML+tlrc
 compList=(SpT1 SpT1pT2 T1 T1pT2 T2 T2fT1)				# matches decon prefix
 arrA=(1 7 1 7 1 7)										# RH RFH H FH H FH
 arrB=(4 10 4 10 4 10)									# RF RFF F FF F FF
-#arrC=(7 x 10 19 x 19)									# RC  x  C CH X CH
+arrC=(7 x 10 x x x)										# RC  x  C  x x x
+arrD=(10 x 7 x x x)										# RM  x  M  x x x
 compLen=${#compList[@]}
 
 
@@ -132,13 +133,12 @@ for i in ${!compList[@]}; do
 
 
 	# determine scan, bricks
-	# if [ $pref == SpT1pT2 ] || [ $pref == T2 ]; then
-	# 	betas=${arrA[$i]},${arrB[$i]}
-	# else
-	# 	betas=${arrA[$i]},${arrB[$i]},${arrC[$i]}
-	# fi
-
-	betas=${arrA[$i]},${arrB[$i]}
+	if [ $pref == SpT1 ] || [ $pref == T1 ]; then
+		betas=${arrA[$i]},${arrB[$i]},${arrC[$i]},${arrD[$i]}
+	else
+		betas=${arrA[$i]},${arrB[$i]}
+	fi
+	# betas=${arrA[$i]},${arrB[$i]}
 
 
 	# find who to remove, print
