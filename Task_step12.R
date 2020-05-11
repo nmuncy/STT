@@ -14,7 +14,7 @@ library(ez)
 ###################
 
 # parDir <- "../Analyses/"
-parDir <- "/run/user/1000/gvfs/afp-volume:host=10.5.72.18,user=exp,volume=Yorick/STT_reml/Analyses/"
+parDir <- "/run/user/1000/gvfs/afp-volume:host=10.5.72.28,user=exp,volume=Yorick/STT_reml/Analyses/"
 
 doWrite <- 1
 doGraphs <- 1
@@ -78,9 +78,9 @@ BehNames.Function <- function(dataString){
   # # else if(dataString=="T2fT1"){out<-c("H1H2","F1H2","C1H2"); return(out)}
   # else if(dataString=="T2fT1"){out<-c("F1H2","F1F2","C1H2"); return(out)}
   
-  if(dataString=="SpT1"){out<-c("RH1","RF1"); return(out)}
+  if(dataString=="SpT1"){out<-c("RH1","RF1","RC1","RM1"); return(out)}
   else if(dataString=="SpT1pT2"){out<-c("RF1H2","RF1F2"); return(out)}
-  else if(dataString=="T1"){out<-c("H1","F1"); return(out)}
+  else if(dataString=="T1"){out<-c("H1","F1","C1","M1"); return(out)}
   else if(dataString=="T1pT2"){out<-c("F1H2","F1F2"); return(out)}
   else if(dataString=="T2"){out<-c("H2","F2"); return(out)}
   else if(dataString=="T2fT1"){out<-c("F1H2","F1F2"); return(out)}
@@ -350,7 +350,7 @@ MkTable.Function <- function(x,y){
 # HC Sub Analysis
 ###################
 # # For testing
-# j <- "Betas_T1_sub_data.txt"
+# j <- "Betas_SpT1_sub_data.txt"
 
 HCmaster_list <- read.table(paste0(subDir,"Master_list_Sub.txt"))
 
@@ -375,6 +375,65 @@ count<-1; for(j in t(HCmaster_list)){
   ### Convert to Long, run ANOVA  
   Mdata_long <- LWC.Function(mask.names,beh,num.subj,Mdata)
   stats <- ezANOVA(Mdata_long,dv=Value,wid=Subj,within=c(Mask,Behavior),type='III')
+  
+  
+  ### RR1 update - hardcode HvM, CvF for SpT1, T1
+  if(grepl("_T1_",j)==T || grepl("_SpT1_",j)==T){
+    
+    # Anova on H/M
+    dfHM <- matrix(0,ncol=2*num.mask,nrow=num.subj)
+    dfHM <- Mdata[,c(1,4,5,8,9,12,13,16)]
+    dfHM_long <- LWC.Function(mask.names,c("Hit","Miss"),num.subj,dfHM)
+    statsHM <- ezANOVA(dfHM_long,dv=Value,wid=Subj,within=c(Mask,Behavior),type='III')
+    outputHM <- capture.output(print(statsHM))
+    if(doWrite==1){
+      writeLines(outputHM,paste0(hc_outDir,"Stats_Sub_AN_",comp,"_MxHM.txt"))
+    }
+    
+    # Post-hoc
+    sigHM <- statsHM$`Sphericity Corrections`$`p[GG]`[2]
+    if(sigHM < 0.05){
+      rr1Out <- NA
+      c<-1; for(k in 1:num.mask){
+        cc<-c+1
+        t_out <- t.test(dfHM[,c],dfHM[,cc],paired = T)
+        rr1Out <- c(rr1Out,colnames(dfHM)[c])
+        rr1Out <- c(rr1Out,capture.output(print(t_out)))
+        c<-cc+1
+      }
+      if(doWrite==1){
+        writeLines(rr1Out,paste0(hc_outDir,"Stats_Sub_TT_HvM_",comp,".txt"))
+      }
+    }
+    
+    
+    # Anova on C/F
+    dfCF <- matrix(0,ncol=2*num.mask,nrow=num.subj)
+    dfCF <- Mdata[,c(3,2,7,6,11,10,15,14)]
+    dfCF_long <- LWC.Function(mask.names,c("CR","FA"),num.subj,dfCF)
+    statsCF <- ezANOVA(dfCF_long,dv=Value,wid=Subj,within=c(Mask,Behavior),type='III')
+    outputCF <- capture.output(print(statsCF))
+    if(doWrite==1){
+      writeLines(outputCF,paste0(hc_outDir,"Stats_Sub_AN_",comp,"_MxCF.txt"))
+    }
+    
+    sigCF <- statsCF$`Sphericity Corrections`$`p[GG]`[2]
+    if(sigCF < 0.05){
+      rr1Out <- NA
+      c<-1; for(k in 1:num.mask){
+        cc<-c+1
+        t_out <- t.test(dfCF[,c],dfCF[,cc],paired = T)
+        rr1Out <- c(rr1Out,colnames(dfCF)[c])
+        rr1Out <- c(rr1Out,capture.output(print(t_out)))
+        c<-cc+1
+      }
+      if(doWrite==1){
+        writeLines(rr1Out,paste0(hc_outDir,"Stats_Sub_TT_CvF_",comp,".txt"))
+      }
+    }
+  }
+
+  
   
   # save p-intx
   df.p[count,1] <- print(stats$ANOVA$p[3])
@@ -402,136 +461,136 @@ count<-1; for(j in t(HCmaster_list)){
 
 
 
-### correct p
-# combine    
-df.pall <- matrix(NA,nrow=dim(df.p)[1],ncol=2)
-colnames(df.pall) <- c("orig","corr")
-rownames(df.pall) <- rownames(df.p)
-
-for(i in 1:dim(df.p)[1]){
-  if(is.na(df.pgg[i,1])==T){
-    df.pall[i,1] <- df.p[i,1]
-  }else{
-    df.pall[i,1] <- df.pgg[i,1]
-  }
-}
-
-# adjust Study
-p.input <- df.pall[1:2,1]
-p.output <- p.adjust(p.input, method="fdr", n=length(p.input))
-df.pall[1:2,2] <- p.output
-
-# adjust Test1
-p.input <- df.pall[3:4,1]
-p.output <- p.adjust(p.input, method="fdr", n=length(p.input))
-df.pall[3:4,2] <- p.output
-
-# adjust Test2
-p.input <- df.pall[5:6,1]
-p.output <- p.adjust(p.input, method="fdr", n=length(p.input))
-df.pall[5:6,2] <- p.output
-
-if(doWrite == 1){
-  write.table(df.pall,file=paste0(hc_outDir,"Stats_Sub_AN_all_adj-p.txt"),sep="\t",row.names=T,col.names=T)
-}
-
-
-
-
-### Post-hoc analyses
-# j <- t(HCmaster_list)[4]
-
-# update: no sig interactions, so no post-hoc needed.
-#   this will be left in the script, but not reported.
-
-for(j in t(HCmaster_list)){
-
-  df.pall <- read.table(paste0(hc_outDir,"Stats_Sub_AN_all_adj-p.txt"))
-  count<-0; if(df.pall[j,2] < 0.05){
-
-    ## get info
-    hold <- read.delim(paste0(subDir,j),header=F)
-    Mdata <- Mdata.Function(hold)
-
-    hold <- gsub("^.*?_","",j)
-    comp <- gsub("_.*$","",hold)
-    beh <- BehNames.Function(comp)
-
-    # set up table, determine all pairwise combinations
-    perm.set <- t(combn(1:num.betas,2))
-    num.comp <- dim(perm.set)[1]
-
-    df.post <- matrix(NA,nrow = num.mask,ncol = 1+(num.comp*6))
-    colnames(df.post) <- c("ROI",rep(c("Comp","T","df","p","LB","RB"),num.comp))
-
-    # set up table
-    df.graph <- matrix(NA,nrow = num.subj,ncol=0)
-
-    # reduce two-way to multiple one-ways
-    c<-1; while(c <= (dim(Mdata)[2]-(num.betas-1))){
-
-      cc <- c+(num.betas-1)
-      hold <- colnames(Mdata)[c]; hold.mask <- substring(hold,6)
-      hold.df <- matrix(NA,nrow=num.subj,ncol=num.betas)
-      hold.df <- Mdata[,c:cc]
-
-      # convert to Long, run ANOVA
-      hold.df_long <- LWC.Function(hold.mask,beh,num.subj,hold.df)
-      stats.hold <- ezANOVA(hold.df_long,dv=Value,wid=Subj,within=Behavior,type='III')
-      p.hold <- stats.hold$ANOVA$p
-
-      ## if one-way is sig, write it then run post-hocs and graphs
-      if(p.hold < 0.05){
-        count <- count+1
-
-        # if GG is used
-        if("Sphericity Corrections" %in% names(stats.hold)){
-          pgg.hold <- stats.hold$`Sphericity Corrections`$`p[GG]`
-
-          # only continue if sig GG
-          if(pgg.hold < 0.05){
-
-            # write one way anova
-            if(doWrite == 1){
-              output <- capture.output(stats.hold)
-              writeLines(output,paste0(hc_outDir,"Stats_ANow_",comp,"_",hold.mask,".txt"))
-            }else{
-              print(stats.hold)
-            }
-
-            # post ts, table, graphs
-            df.post[count,] <- MkTable.Function(hold.df,perm.set)
-            df.graph <- cbind(df.graph,hold.df)
-            if(doGraphs == 1){
-              Graph.Function(hold.df,comp,hold.mask,hc_outDir)
-            }
-          }
-        }else{
-          if(doWrite == 1){
-            output <- capture.output(stats.hold)
-            writeLines(output,paste0(ns_outDir,"Stats_ANow_",comp,"_",hold.mask,".txt"))
-          }else{
-            print(stats.hold)
-          }
-
-          # post ts, table, graphs
-          df.post[count,] <- MkTable.Function(hold.df,perm.set)
-          if(doGraphs == 1){
-            Graph.Function(hold.df,comp,hold.mask,ns_outDir)
-          }
-        }
-      }
-      c<-cc+1
-    }
-
-    # write table
-    df.output <- na.omit(df.post)
-    if(doWrite==1){
-      write.table(df.output,paste0(hc_outDir,"Stats_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
-      write.table(df.graph,paste0(hc_outDir,"Betas_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
-    }
-  }
-}
+# ### correct p
+# # combine    
+# df.pall <- matrix(NA,nrow=dim(df.p)[1],ncol=2)
+# colnames(df.pall) <- c("orig","corr")
+# rownames(df.pall) <- rownames(df.p)
+# 
+# for(i in 1:dim(df.p)[1]){
+#   if(is.na(df.pgg[i,1])==T){
+#     df.pall[i,1] <- df.p[i,1]
+#   }else{
+#     df.pall[i,1] <- df.pgg[i,1]
+#   }
+# }
+# 
+# # adjust Study
+# p.input <- df.pall[1:2,1]
+# p.output <- p.adjust(p.input, method="fdr", n=length(p.input))
+# df.pall[1:2,2] <- p.output
+# 
+# # adjust Test1
+# p.input <- df.pall[3:4,1]
+# p.output <- p.adjust(p.input, method="fdr", n=length(p.input))
+# df.pall[3:4,2] <- p.output
+# 
+# # adjust Test2
+# p.input <- df.pall[5:6,1]
+# p.output <- p.adjust(p.input, method="fdr", n=length(p.input))
+# df.pall[5:6,2] <- p.output
+# 
+# if(doWrite == 1){
+#   write.table(df.pall,file=paste0(hc_outDir,"Stats_Sub_AN_all_adj-p.txt"),sep="\t",row.names=T,col.names=T)
+# }
+# 
+# 
+# 
+# 
+# ### Post-hoc analyses
+# # j <- t(HCmaster_list)[4]
+# 
+# # update: no sig interactions, so no post-hoc needed.
+# #   this will be left in the script, but not reported.
+# 
+# for(j in t(HCmaster_list)){
+# 
+#   df.pall <- read.table(paste0(hc_outDir,"Stats_Sub_AN_all_adj-p.txt"))
+#   count<-0; if(df.pall[j,2] < 0.05){
+# 
+#     ## get info
+#     hold <- read.delim(paste0(subDir,j),header=F)
+#     Mdata <- Mdata.Function(hold)
+# 
+#     hold <- gsub("^.*?_","",j)
+#     comp <- gsub("_.*$","",hold)
+#     beh <- BehNames.Function(comp)
+# 
+#     # set up table, determine all pairwise combinations
+#     perm.set <- t(combn(1:num.betas,2))
+#     num.comp <- dim(perm.set)[1]
+# 
+#     df.post <- matrix(NA,nrow = num.mask,ncol = 1+(num.comp*6))
+#     colnames(df.post) <- c("ROI",rep(c("Comp","T","df","p","LB","RB"),num.comp))
+# 
+#     # set up table
+#     df.graph <- matrix(NA,nrow = num.subj,ncol=0)
+# 
+#     # reduce two-way to multiple one-ways
+#     c<-1; while(c <= (dim(Mdata)[2]-(num.betas-1))){
+# 
+#       cc <- c+(num.betas-1)
+#       hold <- colnames(Mdata)[c]; hold.mask <- substring(hold,6)
+#       hold.df <- matrix(NA,nrow=num.subj,ncol=num.betas)
+#       hold.df <- Mdata[,c:cc]
+# 
+#       # convert to Long, run ANOVA
+#       hold.df_long <- LWC.Function(hold.mask,beh,num.subj,hold.df)
+#       stats.hold <- ezANOVA(hold.df_long,dv=Value,wid=Subj,within=Behavior,type='III')
+#       p.hold <- stats.hold$ANOVA$p
+# 
+#       ## if one-way is sig, write it then run post-hocs and graphs
+#       if(p.hold < 0.05){
+#         count <- count+1
+# 
+#         # if GG is used
+#         if("Sphericity Corrections" %in% names(stats.hold)){
+#           pgg.hold <- stats.hold$`Sphericity Corrections`$`p[GG]`
+# 
+#           # only continue if sig GG
+#           if(pgg.hold < 0.05){
+# 
+#             # write one way anova
+#             if(doWrite == 1){
+#               output <- capture.output(stats.hold)
+#               writeLines(output,paste0(hc_outDir,"Stats_ANow_",comp,"_",hold.mask,".txt"))
+#             }else{
+#               print(stats.hold)
+#             }
+# 
+#             # post ts, table, graphs
+#             df.post[count,] <- MkTable.Function(hold.df,perm.set)
+#             df.graph <- cbind(df.graph,hold.df)
+#             if(doGraphs == 1){
+#               Graph.Function(hold.df,comp,hold.mask,hc_outDir)
+#             }
+#           }
+#         }else{
+#           if(doWrite == 1){
+#             output <- capture.output(stats.hold)
+#             writeLines(output,paste0(ns_outDir,"Stats_ANow_",comp,"_",hold.mask,".txt"))
+#           }else{
+#             print(stats.hold)
+#           }
+# 
+#           # post ts, table, graphs
+#           df.post[count,] <- MkTable.Function(hold.df,perm.set)
+#           if(doGraphs == 1){
+#             Graph.Function(hold.df,comp,hold.mask,ns_outDir)
+#           }
+#         }
+#       }
+#       c<-cc+1
+#     }
+# 
+#     # write table
+#     df.output <- na.omit(df.post)
+#     if(doWrite==1){
+#       write.table(df.output,paste0(hc_outDir,"Stats_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
+#       write.table(df.graph,paste0(hc_outDir,"Betas_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
+#     }
+#   }
+# }
 
 
 
