@@ -3,11 +3,6 @@ library(ez)
 
 
 
-###--- Notes
-#
-# 
-
-
 
 ###################
 # Set up
@@ -15,7 +10,7 @@ library(ez)
 
 # parDir <- "../Analyses/"
 parDir <- "/run/user/1000/gvfs/afp-volume:host=10.5.72.28,user=exp,volume=Yorick/STT_reml/Analyses/"
-doGraphs <- 1
+writeGraph <- 1
 
 
 ### ROI variables
@@ -29,14 +24,6 @@ ns_outDir <- paste0(roiDir,"ns_stats_RR1/")
 ###################
 # Functions
 ###################
-GraphNames.Function <- function(dataString){
-  if(dataString=="SpT1"){return(list(n1="RpHit", n2="RpFA"))}
-  else if(dataString=="SpT1pT2"){return(list(n1="RpFpH", n2="RpFpF"))}
-  else if(dataString=="T1"){return(list(n1="Hit", n2="FA"))}
-  else if(dataString=="T1pT2"){return(list(n1="FpH", n2="FpF"))}
-  else if(dataString=="T2"){return(list(n1="Hit", n2="FA"))}
-  else if(dataString=="T2fT1"){return(list(n1="HfF", n2="FfF"))}
-}
 
 BehNames.Function <- function(dataString){
   if(dataString=="SpT1"){out<-c("RH1","RF1","RC1","RM1"); return(out)}
@@ -47,94 +34,9 @@ BehNames.Function <- function(dataString){
   else if(dataString=="T2fT1"){out<-c("F1H2","F1F2"); return(out)}
 }
 
-NsNames.Function <- function(x){
-  if(x=="LMTL"){
-    return("L. Medial Temporal Lobe")
-  }else if(x=="LITS"){
-    return("L. Inferotemporal Sulcus")
-  }else if(x=="RAMG"){
-    return("R. Amygdala")
-  }else if(x=="RCS"){
-    return("R. Collateral Sulcus")
-  }else if(x=="LAG"){
-    return("L. Angular Gyrus")
-  }else if(x=="LDMPFC"){
-    return("L. Dorsal Medial PFC")
-  }else if(x=="LMFG"){
-    return("L. Middle Frontal Gyrus")
-  }else if(x=="LVMPFC"){
-    return("L. Ventral Medial PFC")
-  }else if(x=="LPCU"){
-    return("L. Precuneus")
-  }else if(x=="LTPJ"){
-    return("L. Temporo-parietal Junction")
-  }else if(x=="RHCB"){
-    return("R. Hippocampal Body")
-  }else if(x=="RPOS"){
-    return("R. Parieto-occipital sulcus")
-  }else if(x=="RHCT"){
-    return("R. Hippocampal Tail")
-  }
-}
-
 SE.Function <- function(x,plot_data){
   SD <- sd(plot_data[,x])/sqrt(length(plot_data[,x]))
   return(SD)
-}
-
-Graph.Function <- function(DF,output_name,maskN,out_place){
-  
-  TITLE <- maskN
-  MEANS <- colMeans(DF)
-  E.BARS<-NA
-  for(a in 1:dim(DF)[2]){
-    E.BARS[a] <- SE.Function(a,DF)
-  }
-  RANGE <- range(c(MEANS,MEANS-E.BARS,MEANS+E.BARS,0))
-  
-  if(grepl("ns_stats",out_place)==T){
-    ROI <- NsNames.Function(maskN)
-    XNAMES <- GraphNames.Function(output_name)
-  }
-  # }else if(grepl("etac_stats",out_place)==T){
-  #   ROI <- EtacNames.Function(output_name,maskN)
-  #   XNAMES <- GraphEtacNames.Function(output_name)
-  # }else if(grepl("sub_stats",out_place)==T){
-  #   ROI <- maskN
-  #   XNAMES <- GraphNames.Function(output_name)
-  # }
-  
-  plotable <- matrix(0,nrow=2,ncol=num.betas)
-  plotable[1,] <- MEANS
-  plotable[2,] <- E.BARS
-  
-  if(doWrite == 1){
-    graphOut <- paste0(out_place,"Graph_",output_name,"_",TITLE,".png")
-    # bitmap(graphOut, width = 6.5, units = 'in', type="tiff24nc", res=1200)
-    bitmap(graphOut, width = 6.5, units = 'in', res=300)
-  }
-  barCenters <- barplot(plotable[1,], names.arg = c(XNAMES), main=ROI, ylab="Beta Coefficient",ylim=RANGE)
-  segments(barCenters, MEANS-E.BARS, barCenters, MEANS+E.BARS)
-  arrows(barCenters, MEANS-E.BARS, barCenters, MEANS+E.BARS, lwd = 1, angle = 90, code = 3, length = 0.05)
-  set.pos <- rowMeans(plotable); if(set.pos[1]>0){POS<-3}else{POS<-1}
-  text(barCenters,0,round(plotable[1,],4),cex=1,pos=POS,font=2)
-  if(doWrite == 1){
-    dev.off()
-  }
-}
-
-TT.Function <- function(x, y, dataN, maskN, out_place){
-  ttest_out <- t.test(x,y,paired=T)
-  meanX <- mean(x)
-  meanY <- mean(y)
-  if(doWrite == 1){
-    output <- c(meanX, meanY)
-    output <- c(output, capture.output(print(ttest_out)))
-    writeLines(output,paste0(out_place,"Stats_TT_",dataN,"_",maskN,".txt"))
-    return(ttest_out)
-  }else{
-    print(ttest_out)
-  }
 }
 
 LWC.Function <- function(w,x,y,z){
@@ -226,40 +128,6 @@ Mdata.Function <- function(x){
   return(df.hold)
 }
 
-MkTable.Function <- function(x,y){
-  
-  DF <- x
-  DF.perm <- y
-  hold.post <- matrix(NA,nrow=1,ncol=1+(num.comp*6))
-  hold.post[1,1] <- hold.mask
-  
-  d<-2; for(k in 1:dim(DF.perm)[1]){
-    
-    colA <- DF.perm[k,1]; colB <- DF.perm[k,2]
-    t.hold <- TT.Function(DF[,colA],DF[,colB],comp,paste0(hold.mask,"_",beh[colA],"-",beh[colB]),ns_outDir)
-
-    t.hold.comp <- paste0(beh[colA],"-",beh[colB])
-    t.hold.t <- as.numeric(t.hold$statistic)
-    t.hold.df <- as.numeric(t.hold$parameter)
-    t.hold.p <- as.numeric(t.hold$p.value)
-    t.hold.lb <- as.numeric(t.hold$conf.int[1])
-    t.hold.ub <- as.numeric(t.hold$conf.int[2])
-
-    t.hold.capture <- c(t.hold.comp,t.hold.t,t.hold.df,t.hold.p,t.hold.lb,t.hold.ub)
-    dd <- d+5
-    hold.post[1,d:dd]<-t.hold.capture
-    d <- dd+1
-  }
-  return(hold.post)
-}
-
-
-# PostHoc.Function("Hit","Miss",dfHM,paste0("Stats_TT_HvM_",comp,".txt"))
-# a <- "Hit"
-# b <- "Miss"
-# x <- dfHM
-# y <- paste0("Stats_TT_HvM_",comp,".txt")
-
 PostHoc.Function <- function(a,b,x,y){
   
   beh1 <- a
@@ -296,7 +164,6 @@ PostHoc.Function <- function(a,b,x,y){
 ###################
 # NeuroSynth Analysis
 ###################
-# # For testing
 # j <- "Betas_T1_NS_data.txt"
 
 NSmaster_list <- read.table(paste0(nsDir,"Master_list_NS.txt"))
@@ -392,100 +259,46 @@ write.table(fdrDF,file=paste0(ns_outDir,"Stats_FDR.txt"),sep="\t",row.names=F,co
 
 
 
+### Make graphs
+# Graph out whatever survives t-tests
+tableList <- list.files(path = ns_outDir, pattern = "Table")
 
-
-### Post-hoc analyses
-
-# update: with a reduction in behaviors, one-way AN and t-test stats are now identical (only two behaviors being investigated)
-#   this section won't be updated, but only the t-tests will be reported.
-
-for(j in t(NSmaster_list)){
+# j <- tableList[1]
+for(j in tableList){
   
-  df.pall <- read.table(paste0(ns_outDir,"Stats_AN_all_adj-p.txt"))
-  count<-0; if(df.pall[j,2] < 0.05){
+  tmp <- gsub("Table_","",j)
+  holdStr <- gsub(".txt","",tmp)
+  comp <- gsub("_.*$","",holdStr)
+  tmp2 <- gsub("^.*?_","",holdStr)
+  roi <- gsub("^.*?_","",tmp2)
+  tmp3 <- gsub("_.*$","",tmp2)
+  behA <- gsub("-.*$","",tmp3)
+  behB <- gsub("^.*-","",tmp3)
+  
+  df <- read.delim(paste0(ns_outDir,j))
 
-    ## get info
-    hold <- read.delim(paste0(nsDir,j),header=F)
-    Mdata <- Mdata.Function(hold)
-    
-    hold <- gsub("^.*?_","",j)
-    comp <- gsub("_.*$","",hold)
-    beh <- BehNames.Function(comp)
-    
-    # set up table, determine all pairwise combinations
-    perm.set <- t(combn(1:num.betas,2))
-    num.comp <- dim(perm.set)[1]
-    
-    df.post <- matrix(NA,nrow = num.mask,ncol = 1+(num.comp*6))
-    colnames(df.post) <- c("ROI",rep(c("Comp","T","df","p","LB","RB"),num.comp))
-    
-    # set up table
-    df.graph <- matrix(NA,nrow = num.subj,ncol=0)
+  MEANS <- colMeans(df)
+  E.BARS<-NA
+  for(a in 1:dim(df)[2]){
+    E.BARS[a] <- SE.Function(a,df)
+  }
+  RANGE <- range(c(MEANS,MEANS-E.BARS,MEANS+E.BARS,0))
+  
 
-    # reduce two-way to multiple one-ways
-    c<-1; while(c <= (dim(Mdata)[2]-(num.betas-1))){
-      
-      cc <- c+(num.betas-1)
-      hold <- colnames(Mdata)[c]; hold.mask <- substring(hold,6)
-      hold.df <- matrix(NA,nrow=num.subj,ncol=num.betas)
-      hold.df <- Mdata[,c:cc]
-      
-      # convert to Long, run ANOVA
-      hold.df_long <- LWC.Function(hold.mask,beh,num.subj,hold.df)
-      stats.hold <- ezANOVA(hold.df_long,dv=Value,wid=Subj,within=Behavior,type='III')
-      p.hold <- stats.hold$ANOVA$p
-      
-      ## if one-way is sig, write it then run post-hocs and graphs
-      if(p.hold < 0.05){
-        count <- count+1
-        
-        # if GG is used
-        if("Sphericity Corrections" %in% names(stats.hold)){
-          pgg.hold <- stats.hold$`Sphericity Corrections`$`p[GG]`
-          
-          # only continue if sig GG
-          if(pgg.hold < 0.05){
-            
-            # write one way anova
-            if(doWrite == 1){
-              output <- capture.output(stats.hold)
-              writeLines(output,paste0(ns_outDir,"Stats_ANow_",comp,"_",hold.mask,".txt"))
-            }else{
-              print(stats.hold)
-            }
-            
-            # post ts, table, graphs
-            df.post[count,] <- MkTable.Function(hold.df,perm.set)
-            df.graph <- cbind(df.graph,hold.df)
-            if(doGraphs == 1){
-              Graph.Function(hold.df,comp,hold.mask,ns_outDir)
-            }
-          }
-        }else{
-          if(doWrite == 1){
-            output <- capture.output(stats.hold)
-            writeLines(output,paste0(ns_outDir,"Stats_ANow_",comp,"_",hold.mask,".txt"))
-          }else{
-            print(stats.hold)
-          }
-          
-          # post ts, table, graphs
-          df.post[count,] <- MkTable.Function(hold.df,perm.set)
-          if(doGraphs == 1){
-            Graph.Function(hold.df,comp,hold.mask,ns_outDir)
-          }
-        }
-      }
-      c<-cc+1
-    }
-    
-    # write table
-    df.output <- na.omit(df.post)
-    if(doWrite==1){
-      write.table(df.output,paste0(ns_outDir,"Stats_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
-      write.table(df.graph,paste0(ns_outDir,"Betas_Table_",comp,".txt"),sep = "\t", quote = F, row.names = F)
-    }
+  plotable <- matrix(0,nrow=2,ncol=2)
+  plotable[1,] <- MEANS
+  plotable[2,] <- E.BARS
+  
+  if(writeGraph == 1){
+    graphOut <- paste0(ns_outDir,"Graph_",holdStr,".png")
+    bitmap(graphOut, width = 6.5, units = 'in', res=300)
+  }
+  barCenters <- barplot(plotable[1,], names.arg = c(behA,behB), main=paste(comp,roi), ylab="Parameter Estimate",ylim=RANGE)
+  segments(barCenters, MEANS-E.BARS, barCenters, MEANS+E.BARS)
+  arrows(barCenters, MEANS-E.BARS, barCenters, MEANS+E.BARS, lwd = 1, angle = 90, code = 3, length = 0.05)
+  set.pos <- rowMeans(plotable); if(set.pos[1]>0){POS<-3}else{POS<-1}
+  text(barCenters,0,round(plotable[1,],4),cex=1,pos=POS,font=2)
+  if(writeGraph == 1){
+    dev.off()
   }
 }
-
-
