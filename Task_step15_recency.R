@@ -15,9 +15,9 @@ out_dir = paste0(parent_dir, "data_group/")
 ref_table = read.delim(paste0(out_dir, "Group_table_dprime_T1.txt"), header = T)
 subj_list = ref_table$Subj
 
-# start output df
-df_out <- as.data.frame(matrix(NA, nrow = dim(ref_table)[1], ncol = 7))
-colnames(df_out) <- c("Subj", "AvgFF", "AvgFH", "AvgHF", "AvgHH", "Sig.FFH", "Sig.HFH")
+# start group df
+df_group <- as.data.frame(matrix(NA, nrow = dim(ref_table)[1], ncol = 5))
+colnames(df_group) <- c("Subj", "Num.CrFa", "Dist.CrFa", "Num.CrHit", "Dist.CrHit")
 
 out_row <- 1
 for(subj in subj_list){
@@ -52,50 +52,38 @@ for(subj in subj_list){
     df_rec$Beh[i] <- paste0(df_comb$Beh[t1_loc], "-", df_comb$Beh[h_ind])
   }
   
-  # find position of relevant behaviors
-  pos_FaFa <- which(df_rec$Beh == "FA-FA")
-  pos_FaHit <- which(df_rec$Beh == "FA-Hit")
-  pos_HitHit <- which(df_rec$Beh == "Hit-Hit")
-  pos_HitFa <- which(df_rec$Beh == "Hit-FA")
+  # find position, number of relevant behaviors
+  pos_CrFa <- which(df_rec$Beh == "CR-FA")
+  num_CrFa <- as.numeric(length(pos_CrFa))
   
-  # find average distance for e/beh
-  avg_FaFa <- round(mean(df_rec$Dist[pos_FaFa]))
-  avg_FaHit <- round(mean(df_rec$Dist[pos_FaHit]))
-  avg_HitFa <- round(mean(df_rec$Dist[pos_HitFa]))
-  avg_HitHit <- round(mean(df_rec$Dist[pos_HitHit]))
-  
-  # test for difference, account for unequal num (test for equal variance)
-  lure_vout <- var.test(df_rec$Dist[pos_FaFa], df_rec$Dist[pos_FaHit])
-  if(lure_vout$p.value > 0.05){
-    lure_out <- t.test(df_rec$Dist[pos_FaFa], df_rec$Dist[pos_FaHit], var.equal=T)
-  }else{
-    lure_out <- t.test(df_rec$Dist[pos_FaFa], df_rec$Dist[pos_FaHit], var.equal=F)
-  }
-  
-  # symbolize significance
-  if(lure_out$p.value < 0.05){
-    lure_sig <- "*"
-  }else{
-    lure_sig <- "--"
-  }
-  
-  targ_vout <- var.test(df_rec$Dist[pos_HitFa], df_rec$Dist[pos_HitHit])
-  if(targ_vout$p.value > 0.05){
-    targ_out <- t.test(df_rec$Dist[pos_HitFa], df_rec$Dist[pos_HitHit], var.equal=T)
-  }else{
-    targ_out <- t.test(df_rec$Dist[pos_HitFa], df_rec$Dist[pos_HitHit], var.equal=F)
-  }
-  if(targ_out$p.value < 0.05){
-    targ_sig <- "*"
-  }else{
-    targ_sig <- "--"
-  }
+  pos_CrHit <- which(df_rec$Beh == "CR-Hit")
+  num_CrHit <- as.numeric(length(pos_CrHit))
+
+  # find average stimulus distance for e/beh
+  avg_CrFa <- round(mean(df_rec$Dist[pos_CrFa]))
+  avg_CrHit <- round(mean(df_rec$Dist[pos_CrHit]))
   
   # append out
-  df_out[out_row,] <- c(subj, avg_FaFa, avg_FaHit, avg_HitFa, avg_HitHit, lure_sig, targ_sig)
+  df_group[out_row,] <- c(subj, num_CrFa, avg_CrFa, num_CrHit, avg_CrHit)
   out_row <- out_row+1
 }
 
+# do proportion testing
+Prop.Function <- function(a,b){
+  func.df <- matrix(0,nrow=length(a),ncol=2)
+  func.df[,1] <- a
+  func.df[,2] <- b
+  input <- colMeans(func.df)
+  output <- prop.test(input[1],input[2],p=0.5,correct=TRUE)
+  return(output)
+}
+prop_out <- Prop.Function(as.numeric(df_group$Num.CrFa), (as.numeric(df_group$Num.CrFa) + as.numeric(df_group$Num.CrHit)))
+
 # write out
-out_file <- paste0(out_dir, "Group_table_recency.txt")
-write.table(df_out, out_file, quote = F, sep = "\t", row.names = F)
+out_table <- paste0(out_dir, "Group_table_recency.txt")
+write.table(df_group, out_table, quote = F, sep = "\t", row.names = F)
+
+out_stats <- paste0(out_dir, "Stats_prop_recency.txt")
+h_out <- capture.output(prop_out)
+write.table(h_out, out_stats, row.names = F, quote = F)
+

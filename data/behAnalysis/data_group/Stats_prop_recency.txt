@@ -1,0 +1,13 @@
+x
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 3.5756, df = 1, p-value = 0.05863
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.2033965 0.5054042
+sample estimates:
+        p 
+0.3394238 
+
