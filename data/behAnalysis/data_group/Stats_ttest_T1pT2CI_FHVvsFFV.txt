@@ -1,0 +1,14 @@
+11.0571428571429
+10.9428571428571
+
+	Paired t-test
+
+data:  hold.df[, 1] and hold.df[, 2]
+t = 0.098147, df = 34, p-value = 0.9224
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -2.252139  2.480711
+sample estimates:
+mean of the differences 
+              0.1142857 
+

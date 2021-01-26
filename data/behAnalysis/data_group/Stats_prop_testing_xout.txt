@@ -1,0 +1,118 @@
+Prop testing
+T1 pHit
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 32.185, df = 1, p-value = 1.402e-08
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.6967134 0.8663753
+sample estimates:
+        p 
+0.7934386 
+
+T1 pCR
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 1.4376, df = 1, p-value = 0.2305
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.3347791 0.5383674
+sample estimates:
+        p 
+0.4339233 
+
+T2 pHit
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 11.434, df = 1, p-value = 0.0007211
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.5513504 0.6913548
+sample estimates:
+        p 
+0.6238424 
+
+T2CI pHV
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 0.22017, df = 1, p-value = 0.6389
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.4328582 0.6165765
+sample estimates:
+        p 
+0.5255439 
+
+T2CI pFV
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 4.1034, df = 1, p-value = 0.0428
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.2676743 0.4961735
+sample estimates:
+        p 
+0.3753981 
+
+T1pT2 pHH
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 13.836, df = 1, p-value = 0.0001995
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.6047013 0.8174075
+sample estimates:
+        p 
+0.7227291 
+
+T1pT2 pFH
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 0, df = 1, p-value = 1
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.3713093 0.6362827
+sample estimates:
+        p 
+0.5040739 
+
+T1pT2CI pFHV
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 0.66148, df = 1, p-value = 0.416
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.2272983 0.6058330
+sample estimates:
+        p 
+0.4034707 
+
+T1pT2CI pFFV
+
+	1-sample proportions test with continuity correction
+
+data:  input[1] out of input[2], null probability 0.5
+X-squared = 0.80734, df = 1, p-value = 0.3689
+alternative hypothesis: true p is not equal to 0.5
+95 percent confidence interval:
+ 0.2206118 0.5982965
+sample estimates:
+        p 
+0.3952226 
+

@@ -1,0 +1,42 @@
+D' ttests
+0.662003606825393
+0.45216386679979
+T1vT2
+
+	Paired t-test
+
+data:  v.T1d and v.T2d
+t = 4.3708, df = 34, p-value = 0.0001106
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 0.1122723 0.3074072
+sample estimates:
+mean of the differences 
+              0.2098397 
+
+T1v0
+
+	One Sample t-test
+
+data:  v.T1d
+t = 11.31, df = 34, p-value = 4.548e-13
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ 0.5430551 0.7809522
+sample estimates:
+mean of x 
+0.6620036 
+
+T2v0
+
+	One Sample t-test
+
+data:  v.T2d
+t = 9.1247, df = 34, p-value = 1.154e-10
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ 0.3514581 0.5528696
+sample estimates:
+mean of x 
+0.4521639 
+
